@@ -1,0 +1,12 @@
+IP_EXPORT_PATH = D:/ypc_work/web_fpga/tand_prj/tand_udp/al_ip
+IP_COMPONENT_NAME = MIS_DDR_PAXI
+IP_INSTALL_PATH = D:/Program Files/ip/depot/MIS_DDRF6F1D0P0_1.1
+ddrmc tcl proc start
+generate src file success
+modify usrname file success
+generate sdc file success
+modify xml file success
+gen define file success
+gen board delay file success
+remove RTL folder success
+gen fileset_mis.f success

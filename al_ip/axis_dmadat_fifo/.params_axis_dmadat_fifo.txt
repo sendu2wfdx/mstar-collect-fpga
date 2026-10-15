@@ -1,0 +1,23 @@
+AL_AXIS_TID_WIDTH : 1 : G : En :  :  : 
+AL_AXIS_TDEST_WIDTH : 1 : G : En :  :  : 
+AL_AXIS_TUSER_WIDTH : 1 : G : En :  :  : 
+AL_FIFO_DEPTH : 512 : U : En : 16;;32;;64;;128;;256;;512;;1024;;2048;;4096;;8192;;16384;;32768 :  : 
+AL_IS_ACLK_ASYNC : 1 : G : En :  :  : 
+TDATA_WIDTH_DISPLAY : 16 : U : En :  : 1 : 256
+AL_AXIS_TDATA_WIDTH : 128 : G : En :  :  : 
+Enable_TSTRB : Disable : U : En : Enable;;Disable :  : 
+Enable_TKEEP : Disable : U : En : Enable;;Disable :  : 
+Enable_write_data_count : 0 : U : En :  :  : 
+Enable_almost_full : 0 : U : En :  :  : 
+Enable_read_data_count : 1 : U : En :  :  : 
+Enable_almost_empty : 0 : U : En :  :  : 
+Enable_packet_mode : Disable : U : En : Enable;;Disable :  : 
+AL_AXIS_SIGNAL_SET : 32'b00000011 : G : En :  :  : 
+AL_FIFO_MODE : 1 : G : En :  :  : 
+AL_ACLKEN_CONV_MODE : 0 : G : En :  :  : 
+ACLKEN_conversion_mode : None : U : En : None;;only US;;only DS;;US & DS :  : 
+Enable_TLAST : Disable : U : En : Enable;;Disable :  : 
+Independent_clocks : Yes : U : En : Yes;;No :  : 
+AL_AXIS_TID_WIDTH_disp : 0 : U : En :  : 0 : 32
+AL_AXIS_TDEST_WIDTH_disp : 0 : U : En :  : 0 : 32
+AL_AXIS_TUSER_WIDTH_disp : 0 : U : En :  : 0 : 4096

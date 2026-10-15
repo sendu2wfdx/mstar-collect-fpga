@@ -1,0 +1,24 @@
+AXI_ID_WIDTH : 4 : U : En :  : 1 : 32
+AWUSER_WIDTH : 1 : U : Dis :  : 1 : 1024
+ARUSER_WIDTH : 1 : U : Dis :  : 1 : 1024
+WUSER_WIDTH : 1 : U : Dis :  : 1 : 1024
+RUSER_WIDTH : 1 : U : Dis :  : 1 : 1024
+BUSER_WIDTH : 1 : U : Dis :  : 1 : 1024
+SUPPORTS_WRITE_CHANNEL : 1 : G : En :  :  : 
+SUPPORTS_READ_CHANNEL : 1 : G : En :  :  : 
+AXI_ADDR_WIDTH : 27 : U : En :  : 1 : 64
+AXI_DATA_WIDTH : 128 : U : En : 32;;64;;128;;256;;512;;1024 :  : 
+PROTOCOL_onDisplay : AXI4 : U : En : AXI4;;AXI3;;AXI4LITE :  : 
+IS_ACLK_ASYNC_onDisplay : Yes : U : En : Yes;;No :  : 
+ACLK_PATIO_onDiaplay : 1:8 : U : Dis : 16:1;;15:1;;14:1;;13:1;;12:1;;11:1;;10:1;;9:1;;8:1;;7:1;;6:1;;5:1;;4:1;;3:1;;2:1;;1:2;;1:3;;1:4;;1:5;;1:6;;1:7;;1:8;;1:9;;1:10;;1:11;;1:12;;1:13;;1:14;;1:15;;1:16 :  : 
+IS_ACLK_ASYNC : 1 : G : En :  :  : 
+DS_ACLK_RATIO : 8 : G : En :  :  : 
+US_ACLK_RATIO : 1 : G : En :  :  : 
+AXI_PROTOCOL : 0 : G : En :  :  : 
+axlen : 7 : G : En :  :  : 
+axlock : 0 : G : En :  :  : 
+Protocol_not_axi4lite : 1 : G : En :  :  : 
+AXI_SUPPORTS_USER_SIGNALS : 0 : U : En :  :  : 
+READ_WRITE_Mode : READ WRITE : U : En : READ WRITE;;READ ONLY;;WRITE ONLY :  : 
+Protocol_is_axi4 : 1 : G : En :  :  : 
+Protocol_is_axi3 : 0 : G : En :  :  : 

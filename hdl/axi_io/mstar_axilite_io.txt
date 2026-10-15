@@ -1,0 +1,255 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2026/03/24
+ 15:15:14
+// Design Name: 
+// Module Name: mstar_axilite_io
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module mstar_axilite_io#(
+    parameter integer C_S_AXI_ADDR_WIDTH = 8,
+    parameter integer C_S_AXI_DATA_WIDTH = 32,
+    parameter  IMAGE_SIZE_WIDTH = 12,
+    parameter   FRAME_SIZE_WIDTH = 25,
+    parameter  IMAGEPIX_BIT_WIDTH = 16,
+    parameter          MODEL_ID = 'h10001
+    )(
+     input  wire                          ACLK,
+    input  wire                          ARESET,
+//    input  wire                          ACLK_EN,
+    input  wire [C_S_AXI_ADDR_WIDTH-1:0] AWADDR,
+    input  wire                          AWVALID,
+    output wire                          AWREADY,
+    input  wire [C_S_AXI_DATA_WIDTH-1:0] WDATA,
+    input  wire [C_S_AXI_DATA_WIDTH/8-1:0] WSTRB,
+    input  wire                          WVALID,
+    output wire                          WREADY,
+    output wire [1:0]                    BRESP,
+    output wire                          BVALID,
+    input  wire                          BREADY,
+    input  wire [C_S_AXI_ADDR_WIDTH-1:0] ARADDR,
+    input  wire                          ARVALID,
+    output wire                          ARREADY,
+    output wire [C_S_AXI_DATA_WIDTH-1:0] RDATA,
+    output wire [1:0]                    RRESP,
+    output wire                          RVALID,
+    input  wire                          RREADY,
+    
+    output  reg [IMAGE_SIZE_WIDTH-1:0]                 video_left_offset,
+    output  reg [IMAGE_SIZE_WIDTH-1:0]                 video_top_offset,
+	output  reg [IMAGE_SIZE_WIDTH-1:0]                 video_width,
+	output  reg [IMAGE_SIZE_WIDTH-1:0]                 video_height,
+	output  reg [FRAME_SIZE_WIDTH-1:0]               dma_size,
+//	output  reg [FRAME_DELAY_WIDTH-1 : 0]  frame_delay,
+	output  reg                        frame_dma_rst,
+	output [31:0]                      axis_frame_addr,
+	output                             axis_frame_val,
+	input                              axis_frame_rdy
+
+    );
+    localparam ADDR_FRAME_ID					    = 0;
+    localparam ADDR_FRAME_CON                       = ADDR_FRAME_ID+4;
+	localparam ADDR_FRAME_STPOINT					= ADDR_FRAME_CON+4;
+    localparam ADDR_FRAME_IMAGESIZE					= ADDR_FRAME_STPOINT+4;
+    localparam ADDR_FRAME_DMASIZE					= ADDR_FRAME_IMAGESIZE+4;
+//    localparam ADDR_FRAME_DELAY                     = ADDR_FRAME_DMASIZE+4;
+    localparam ADDR_FRAME_BUFFERADDR                = ADDR_FRAME_DMASIZE+4;
+    
+    
+    reg [2:0] rst_delay_cnt; 
+    wire [31:0] frame_addr_cnt;
+    //wire s_axis_tready;
+    wire s_axis_tvalid;
+    wire [31:0] s_axis_tdata;
+    
+    assign s_axis_tvalid=w_hs && waddr == ADDR_FRAME_BUFFERADDR;
+    assign s_axis_tdata=WDATA;
+axis_frame_dmaaddr_fifo axis_frame_dmaaddr_fifo_u0 (
+  .s_axis_aresetn   (~(ARESET|frame_dma_rst)),          // input wire s_axis_aresetn
+  .s_axis_aclk      (ACLK           ),                // input wire s_axis_aclk
+  .s_axis_tvalid    (s_axis_tvalid),            // input wire s_axis_tvalid
+  .s_axis_tready    (               ),            // output wire s_axis_tready
+  .s_axis_tdata     (s_axis_tdata),              // input wire [31 : 0] s_axis_tdata
+  .m_axis_tvalid    (axis_frame_val),            // output wire m_axis_tvalid
+  .m_axis_tready    (axis_frame_rdy),            // input wire m_axis_tready
+  .m_axis_tdata     (axis_frame_addr),              // output wire [31 : 0] m_axis_tdata
+  .axis_wr_data_count(frame_addr_cnt)  // output wire [31 : 0] axis_wr_data_count
+);
+    
+	localparam     WRIDLE               = 2'd0,
+                    WRDATA               = 2'd1,
+                    WRRESP               = 2'd2,
+                    WRRESET              = 2'd3,
+                    RDIDLE               = 2'd0,
+                    RDDATA               = 2'd1,
+                    RDRESET              = 2'd2,
+                    ADDR_BITS         = C_S_AXI_ADDR_WIDTH;
+//------------------------Local signal-------------------
+    reg  [1:0]                    wstate = WRRESET;
+    reg  [1:0]                    wnext;
+    reg  [ADDR_BITS-1:0]          waddr;
+    wire [31:0]                   wmask;
+    wire                          aw_hs;
+    wire                          w_hs;
+    reg  [1:0]                    rstate = RDRESET;
+    reg  [1:0]                    rnext;
+    reg  [31:0]                   rdata;
+    wire                          ar_hs;
+    wire [ADDR_BITS-1:0]          raddr;
+    
+//------------------------AXI write fsm------------------
+assign AWREADY = (wstate == WRIDLE);
+assign WREADY  = (wstate == WRDATA);
+assign BRESP   = 2'b00;  // OKAY
+assign BVALID  = (wstate == WRRESP);
+assign wmask   = { {8{WSTRB[3]}}, {8{WSTRB[2]}}, {8{WSTRB[1]}}, {8{WSTRB[0]}} };
+assign aw_hs   = AWVALID & AWREADY;
+assign w_hs    = WVALID & WREADY;
+
+// wstate
+always @(posedge ACLK) begin
+    if (ARESET)
+        wstate <= WRRESET;
+    else 
+        wstate <= wnext;
+end
+
+// wnext
+always @(*) begin
+    case (wstate)
+        WRIDLE:
+            if (AWVALID)
+                wnext = WRDATA;
+            else
+                wnext = WRIDLE;
+        WRDATA:
+            if (WVALID)
+                wnext = WRRESP;
+            else
+                wnext = WRDATA;
+        WRRESP:
+            if (BREADY)
+                wnext = WRIDLE;
+            else
+                wnext = WRRESP;
+        default:
+            wnext = WRIDLE;
+    endcase
+end
+
+// waddr
+always @(posedge ACLK) begin
+//    if (ACLK_EN) begin
+        if (aw_hs)
+            waddr <= AWADDR[ADDR_BITS-1:0];
+//    end
+end
+
+//------------------------AXI read fsm-------------------
+assign ARREADY = (rstate == RDIDLE);
+assign RDATA   = rdata;
+assign RRESP   = 2'b00;  // OKAY
+assign RVALID  = (rstate == RDDATA);
+assign ar_hs   = ARVALID & ARREADY;
+assign raddr   = ARADDR[ADDR_BITS-1:0];
+always @(posedge ACLK) begin
+    if (ARESET)
+        rstate <= RDRESET;
+    else 
+        rstate <= rnext;
+end
+
+// rnext
+always @(*) begin
+    case (rstate)
+        RDIDLE:
+            if (ARVALID)
+                rnext = RDDATA;
+            else
+                rnext = RDIDLE;
+        RDDATA:
+            if (RREADY & RVALID)
+                rnext = RDIDLE;
+            else
+                rnext = RDDATA;
+        default:
+            rnext = RDIDLE;
+    endcase
+end
+//get_singer_edge#(.SING_WIDTH(IRQ_BIT_WIDTH)) get_singer_edge_u0(.clk(ACLK),.i_sing(i_irq),.o_sing_up(i_irq_up),.o_sing_down());
+always @(posedge ACLK) begin
+    if (ar_hs) begin
+        rdata <= 'b0;
+        case (raddr)
+        ADDR_FRAME_ID:	         begin rdata<=MODEL_ID;	end
+        ADDR_FRAME_CON:	         begin rdata<=IMAGEPIX_BIT_WIDTH;	end
+        ADDR_FRAME_STPOINT:      begin {rdata[IMAGE_SIZE_WIDTH+15:16],rdata[IMAGE_SIZE_WIDTH-1:0]}<= {video_left_offset,video_top_offset};end
+        ADDR_FRAME_IMAGESIZE:	 begin {rdata[IMAGE_SIZE_WIDTH+15:16],rdata[IMAGE_SIZE_WIDTH-1:0]}<={video_width,video_height};end
+        ADDR_FRAME_DMASIZE:      begin rdata[FRAME_SIZE_WIDTH-1:0]<= dma_size; end
+//        ADDR_FRAME_DELAY:        begin rdata[FRAME_DELAY_WIDTH-1 : 0]<=frame_delay; end
+        ADDR_FRAME_BUFFERADDR:   begin rdata<=frame_addr_cnt; end
+        endcase
+    end
+end
+always @(posedge ACLK) begin
+    if (ARESET) begin
+        frame_dma_rst <= 0;
+        rst_delay_cnt<=0;
+    end else  begin
+        if (w_hs && waddr == ADDR_FRAME_CON)
+            frame_dma_rst<= WDATA[0];
+        if(frame_dma_rst)begin
+            rst_delay_cnt<=rst_delay_cnt+1'b1;
+            if(rst_delay_cnt==3'b111) 
+                frame_dma_rst<=0; 
+        end
+    end
+end
+always @(posedge ACLK) begin
+    if (ARESET)
+        {video_left_offset,video_top_offset} <= 0;
+    else  begin
+        if (w_hs && waddr == ADDR_FRAME_STPOINT)
+            {video_left_offset,video_top_offset}<= {WDATA[IMAGE_SIZE_WIDTH+15:16],WDATA[IMAGE_SIZE_WIDTH-1:0]};
+    end
+end
+always @(posedge ACLK) begin
+    if (ARESET)
+        {video_width,video_height} <= 0;
+    else  begin
+        if (w_hs && waddr == ADDR_FRAME_IMAGESIZE)
+            {video_width,video_height}<= {WDATA[IMAGE_SIZE_WIDTH+15:16],WDATA[IMAGE_SIZE_WIDTH-1:0]};
+    end
+end 
+always @(posedge ACLK) begin
+    if (ARESET)
+        dma_size <= 0;
+    else  begin
+        if (w_hs && waddr == ADDR_FRAME_DMASIZE)
+            dma_size<= WDATA[FRAME_SIZE_WIDTH-1:0];
+    end
+end 
+//always @(posedge ACLK) begin
+//    if (ARESET)
+//        frame_delay <= 0;
+//    else  begin
+//        if (w_hs && waddr == ADDR_FRAME_DELAY)
+//            frame_delay<= WDATA[FRAME_DELAY_WIDTH-1 : 0];
+//    end
+//end     
+endmodule

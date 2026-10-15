@@ -1,0 +1,14 @@
+# Tang Dynasty build outputs
+tand_udp_Runs/
+log/
+chip_debugger/
+
+# Lock / temp / empty placeholder files
+.lock.f
+.recent_user_depot.ini
+td_pvt_sensor.dat
+.design.prj
+
+# OS files
+Thumbs.db
+.DS_Store
