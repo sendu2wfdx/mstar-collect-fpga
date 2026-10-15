@@ -16,6 +16,10 @@
 
 ![数据采集器实物](hdl/collect_picture.png)
 
+## 相关项目
+
+- [MStar Oscilloscope 上位机示波器](https://gitee.com/mstar_ypc/mstar-oscilloscope) — 与本 FPGA 工程配套的上位机数据采集与波形显示软件
+
 ## 工程结构
 
 ```
