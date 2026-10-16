@@ -1,0 +1,42 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: master
+nodes_managed: true
+exported_at: "2026-10-16T04:09:06Z"
+modules:
+    "":
+        dir_name: MStar 多通道 ADC 采集与 UDP 传输 FPGA 工程
+        title: MStar 多通道 ADC 采集与 UDP 传输 FPGA 工程
+        scope:
+            - README.md
+            - .gitignore
+            - tand_udp.al
+            - tand_udp_devicesetting.cfg
+            - LICENSE
+        source_files: []
+        children:
+            - hdl_source
+            - ip_cores
+        depends_on: []
+        related_to: []
+    hdl_source:
+        dir_name: 多通道 ADC 数据采集与 UDP 传输 FPGA 顶层
+        title: 多通道 ADC 数据采集与 UDP 传输 FPGA 顶层
+        scope:
+            - hdl/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: ip_cores
+    ip_cores:
+        dir_name: Anlogic P1 平台 IP 核集合（DDR_MAC_AXI 子系统）
+        title: Anlogic P1 平台 IP 核集合（DDR/MAC/AXI 子系统）
+        scope:
+            - al_ip/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: hdl_source

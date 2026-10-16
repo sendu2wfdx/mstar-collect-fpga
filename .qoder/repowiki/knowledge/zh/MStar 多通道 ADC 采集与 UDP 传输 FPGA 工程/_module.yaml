@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: ""
+title: MStar 多通道 ADC 采集与 UDP 传输 FPGA 工程
+scope:
+    - README.md
+    - .gitignore
+    - tand_udp.al
+    - tand_udp_devicesetting.cfg
+    - LICENSE
+source_files: []
+depends_on: []
+related_to: []

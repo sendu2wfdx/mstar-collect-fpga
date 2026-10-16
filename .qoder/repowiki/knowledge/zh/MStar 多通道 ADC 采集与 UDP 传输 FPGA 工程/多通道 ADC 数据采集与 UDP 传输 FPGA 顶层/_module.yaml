@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: hdl_source
+title: 多通道 ADC 数据采集与 UDP 传输 FPGA 顶层
+scope:
+    - hdl/
+source_files: []
+depends_on: []
+related_to:
+    - path: ip_cores
